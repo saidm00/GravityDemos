@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demos</title>
+
+    <link rel="stylesheet" href="codemirror-5.41.0/lib/codemirror.css"/>
+    <link rel="stylesheet" href="bootstrap-4.1.3/css/bootstrap.min.css"/>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            <p>
+            These demo's here are all written using the <a href="https://p5js.org/">p5.js</a> library.
+            </p>
+            <p>
+                The Newtonian formula for force is `vec F = mg`.<br>
+                If you have a set of `N` particles then for any particle `i` the formula for the total force is: <br>
+
+                `vec F_i = sum_(i = 0, i != j)^(N-1) vec Fij` <br>
+
+                The equation describing the gravitational force between two particles is generally written as follows: <br>
+
+                `F_1 = F_2 = G(m_1 xx m_2)/r^2`<br>
+
+
+                I write this function more specifically here: <br>
+                `vec F_12 = G (m_1 xx m_2)/r^2 hat u_12`
+
+                <br>where `hat u` is the <b>unit</b> direction from the first particle to the second, <br>
+                `m_1` and `m_2` are both particles' masses, `r` is the distance between them and `G` is the gravitational constant. <br>
+                `G = 6.67408 xx 10^-11` <br>
+
+            </p>
+
+        </div>
+
+        <div class="row">
+            <div class="col-md-6" id="example1">
+            </div>
+            <div class="col-md-6" id="p5sketch1">
+                <!--<canvas id="canvas" style="background: black; width: 100%; height: 100%;"></canvas>-->
+            </div>
+        </div>
+
+        <button onclick="startDemo1();">Run!</button>
+
+        <div class="text-center">
+            <p>
+                The following 3D demo simulates idealistic spherical rigid bodies interacting in space. <br>
+                This uses the <b>Impulse-based reaction model</b> <br>
+                detailed on this <a href="https://en.wikipedia.org/wiki/Collision_response">wikipedia page</a>. <br>
+
+                `+- bb j_r = +- j_r * bb hat n` Where `bb hat n` is the normal perpendicular <br>
+                to the face of Body 1 pointing towards Body 2 by convention.
+            </p>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-6" id="example2">
+            </div>
+            <div class="col-md-6" id="p5sketch2">
+                <!--<canvas id="canvas" style="background: black; width: 100%; height: 100%;"></canvas>-->
+            </div>
+        </div>
+
+        <button onclick="startDemo2();">Run!</button>
+
+        <p>
+
+    </div>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=AM_CHTML"></script>
+
+    <script type="text/javascript" src="codemirror-5.41.0/lib/codemirror.js"></script>
+    <script src="codemirror-5.41.0/mode/javascript/javascript.js"></script>
+
+    <script src="bootstrap-4.1.3/js/bootstrap.min.js"></script>
+
+    <script src="p5.min.js"></script>
+
+    <script type="text/javascript">
+        function httpGet(theUrl)
+        {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            return xmlHttp.responseText;
+        }
+
+        var codeMirror1 = new CodeMirror(document.getElementById("example1"), {
+            value: "var sketch = function(p) {\n" +
+                "    const G = 6.67408 * 10e-11;\n" +
+                "    const N = 200;\n" +
+                "    const FPS = 60;\n" +
+                "\n" +
+                "    class Particle {\n" +
+                "        constructor(pos, r, mass) {\n" +
+                "            this.pos = pos;\n" +
+                "            this.radius = r;\n" +
+                "            this.vel = new p5.Vector(0, 0);\n" +
+                "            this.acc = new p5.Vector(0, 0);\n" +
+                "\n" +
+                "            this.mass = mass;\n" +
+                "        }\n" +
+                "\n" +
+                "        addForce(force) {\n" +
+                "            this.acc.add(force);\n" +
+                "        }\n" +
+                "\n" +
+                "        update(dt) {\n" +
+                "            this.vel.add(p5.Vector.mult(p5.Vector.div(this.acc, this.mass), dt));\n" +
+                "            this.pos.add(p5.Vector.mult(this.vel, dt));\n" +
+                "            this.acc = new p5.Vector(0,0);\n" +
+                "        }\n" +
+                "\n" +
+                "        draw() {\n" +
+                "            let m1 = this.vel.mag() / 100;\n" +
+                "            let m2 = 1 - m1;\n" +
+                "            p.fill(m1 * 255, p.lerp(170, 200, m2), m2 * 200);\n" +
+                "            p.noStroke();\n" +
+                "            let r2 = this.radius * 2;\n" +
+                "            p.ellipse(this.pos.x, this.pos.y, r2, r2);\n" +
+                "        }\n" +
+                "    }\n" +
+                "\n" +
+                "    p.setup = function() {\n" +
+                "        p.createCanvas(360, 360);\n" +
+                "        p.frameRate(FPS);\n" +
+                "\n" +
+                "        var center = new p5.Vector(p.width/2, p.height/2);\n" +
+                "        var box = new p5.Vector(p.width/2, p.height/2);\n" +
+                "\n" +
+                "        p.particles = new Array(N);\n" +
+                "        for(var i = 0; i < N; i++) {\n" +
+                "            p.particles[i] = new Particle(new p5.Vector(\n" +
+                "                p.random(center.x - box.x, center.x + box.x),\n" +
+                "                p.random(center.y - box.y, center.y + box.y)),\n" +
+                "                p.random(0.25, 1),\n" +
+                "                p.random(1e13, 3e13));\n" +
+                "        }\n" +
+                "\n" +
+                "        p.center = center;\n" +
+                "        p.box = box;\n" +
+                "\n" +
+                "        // Timing properties\n" +
+                "        p.time = p.millis();\n" +
+                "    };\n" +
+                "\n" +
+                "    p.draw = function() {\n" +
+                "        p.background('rgba(0,0,0,0.5)');\n" +
+                "\n" +
+                "        // Calculate delta time\n" +
+                "        p.lastTime = p.time;\n" +
+                "        p.time = p.millis();\n" +
+                "        //var deltaTime = (p.time - p.lastTime) / 1000;\n" +
+                "        var deltaTime = 1/FPS;\n" +
+                "\n" +
+                "        for(var i = 0; i < p.particles.length; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "\n" +
+                "            for(var j = p.particles.length-1; j >= 0; j--) {\n" +
+                "                if (i == j) continue;\n" +
+                "                var b = p.particles[j];\n" +
+                "                var distance = p5.Vector.sub(b.pos, a.pos).mag();\n" +
+                "                if (distance > a.radius + b.radius) continue;\n" +
+                "                var total_mass = a.mass + b.mass;\n" +
+                "                {var apm = p5.Vector.mult(a.pos, a.mass);\n" +
+                "                    var bpm = p5.Vector.mult(b.pos, b.mass);\n" +
+                "                    var avg_pos = p5.Vector.add(apm, bpm);\n" +
+                "                    var new_pos = p5.Vector.div(avg_pos, total_mass);\n" +
+                "                    a.pos = new_pos.copy();}\n" +
+                "                {var avm = p5.Vector.mult(a.vel, a.mass);\n" +
+                "                    var bvm = p5.Vector.mult(b.vel, b.mass);\n" +
+                "                    var avg_vel = p5.Vector.add(avm, bvm);\n" +
+                "                    var new_vel = p5.Vector.div(avg_vel, total_mass);\n" +
+                "                    a.vel = new_vel.copy();}\n" +
+                "                a.mass = total_mass;\n" +
+                "                a.radius = Math.sqrt(a.radius * a.radius + b.radius * b.radius);\n" +
+                "                p.particles.splice(j, 1);\n" +
+                "            }\n" +
+                "        }\n" +
+                "\n" +
+                "        var nom = new p5.Vector(0,0);\n" +
+                "        var denom = 0;\n" +
+                "\n" +
+                "        for(var i = 0; i < p.particles.length; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "\n" +
+                "            for(var j = 0; j < p.particles.length; j++) {\n" +
+                "                if(i != j) {\n" +
+                "                    var b = p.particles[j];\n" +
+                "\n" +
+                "                    var p1 = a.pos.copy();\n" +
+                "                    var p2 = b.pos.copy();\n" +
+                "\n" +
+                "                    var u = p5.Vector.sub(p2, p1).normalize();\n" +
+                "\n" +
+                "                    var m1 = a.mass;\n" +
+                "                    var m2 = b.mass;\n" +
+                "\n" +
+                "                    var r = p5.Vector.dist(p2, p1);\n" +
+                "\n" +
+                "                    var F = p5.Vector.mult(u, G * (m1*m2) / (r*r));\n" +
+                "\n" +
+                "                    a.addForce(F);\n" +
+                "                }\n" +
+                "            }\n" +
+                "\n" +
+                "            nom.add(p5.Vector.mult(a.pos, a.mass));\n" +
+                "            denom += a.mass;\n" +
+                "        }\n" +
+                "\n" +
+                "        for(var i = 0; i < p.particles.length; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "            if (a.pos.x < 0 || a.pos.y < 0 ||\n" +
+                "                a.pos.x > p.width || a.pos.y > p.height) {\n" +
+                "                p.particles.splice(i, 1);\n" +
+                "                i -= 1;\n" +
+                "            }\n" +
+                "        }\n" +
+                "\n" +
+                "        for(var i = 0; i < p.particles.length; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "            a.update(deltaTime);\n" +
+                "            a.draw();\n" +
+                "        }\n" +
+                "        /*\n" +
+                "         p.stroke(255, 128, 255);\n" +
+                "         p.strokeWeight(1);\n" +
+                "         p.noFill();\n" +
+                "         p.rect(p.center.x - p.box.x, p.center.y - p.box.y,\n" +
+                "                p.box.x*2, 2*p.box.y);\n" +
+                "\n" +
+                "         p.strokeWeight(5);\n" +
+                "\n" +
+                "         nom.div(denom);\n" +
+                "         p.point(nom.x, nom.y);\n" +
+                "        */\n" +
+                "\n" +
+                "    };\n" +
+                "};",
+            mode:  "javascript",
+            lineNumbers: true
+        });
+
+
+        var codeMirror2 = new CodeMirror(document.getElementById("example2"), {
+            value: "var sketch = function(p) {\n" +
+                "    const G = 6.67408 * 10e-11;\n" +
+                "    const N = 150;\n" +
+                "    const FPS = 60;\n" +
+                "    const R = 3;\n" +
+                "    const boxSize = new p5.Vector(90, 90, 90);\n" +
+                "\n" +
+                "    class Particle {\n" +
+                "        constructor(pos, r) {\n" +
+                "            this.pos = pos;\n" +
+                "            this.radius = r;\n" +
+                "            this.vel = new p5.Vector(0, 0, 0);\n" +
+                "            this.acc = new p5.Vector(0, 0, 0);\n" +
+                "\n" +
+                "            this.mass = this.getMass();\n" +
+                "        }\n" +
+                "\n" +
+                "        getMass() {\n" +
+                "            const M = 4e10;\n" +
+                "            let V = 4/3 * Math.PI * Math.pow(this.radius,3);\n" +
+                "            return V * M;\n" +
+                "        }\n" +
+                "\n" +
+                "        addForce(force) {\n" +
+                "            this.acc.add(force);\n" +
+                "        }\n" +
+                "\n" +
+                "        update(dt) {\n" +
+                "            this.vel.add(p5.Vector.mult(p5.Vector.div(this.acc, this.mass), dt));\n" +
+                "            this.pos.add(p5.Vector.mult(this.vel, dt));\n" +
+                "            this.acc.mult(0);\n" +
+                "        }\n" +
+                "\n" +
+                "        draw() {\n" +
+                "            let m1 = this.vel.mag() / 100;\n" +
+                "            let m2 = 1 - m1;\n" +
+                "            p.ambientMaterial(m1 * 255, p.lerp(170, 200, m2), m2 * 200);\n" +
+                "            p.push();\n" +
+                "            p.noStroke();\n" +
+                "            p.translate(this.pos.x, this.pos.y, this.pos.z);\n" +
+                "            p.sphere(this.radius);\n" +
+                "            p.pop();\n" +
+                "        }\n" +
+                "\n" +
+                "        collided(other) {\n" +
+                "            var r1 = this.radius;\n" +
+                "            var r2 = other.radius;\n" +
+                "\n" +
+                "            var r = p5.Vector.dist(other.pos, this.pos);\n" +
+                "\n" +
+                "            return r <= r1+r2;\n" +
+                "        }\n" +
+                "    }\n" +
+                "\n" +
+                "    function reflect(I, N) {\n" +
+                "        return I.sub( p5.Vector.mult(N,2*p5.Vector.dot(N, I)) );\n" +
+                "    }\n" +
+                "\n" +
+                "    p.setup = function() {\n" +
+                "        p.createCanvas(360, 360, p.WEBGL);\n" +
+                "        p.frameRate(FPS);\n" +
+                "        p.debugTex = p.loadImage('./images/debug_gridlow1.png');\n" +
+                "\n" +
+                "        p.particles = new Array(N);\n" +
+                "        for(var i = 0; i < N; i++) {\n" +
+                "            var pos = new p5.Vector(p.random(-boxSize.x, boxSize.x),\n" +
+                "                p.random(-boxSize.y, boxSize.y),\n" +
+                "                p.random(-boxSize.z, boxSize.z));\n" +
+                "            p.particles[i] = new Particle(pos, R);\n" +
+                "        }\n" +
+                "    };\n" +
+                "\n" +
+                "    p.draw = function() {\n" +
+                "        p.background(0);\n" +
+                "        p.orbitControl();\n" +
+                "\n" +
+                "        var deltaTime = 1 / FPS;\n" +
+                "\n" +
+                "        var nom = new p5.Vector(0,0,0);\n" +
+                "        var denom = 0;\n" +
+                "\n" +
+                "        // Physics step\n" +
+                "        for(var i = 0; i < N; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "            for(var j = 0; j < N; j++) {\n" +
+                "                if(i != j) {\n" +
+                "                    var b = p.particles[j];\n" +
+                "                    var p1 = a.pos.copy();\n" +
+                "                    var p2 = b.pos.copy();\n" +
+                "\n" +
+                "                    var u = p5.Vector.sub(p1, p2).normalize();\n" +
+                "\n" +
+                "                    var m1 = a.mass;\n" +
+                "                    var m2 = b.mass;\n" +
+                "\n" +
+                "                    var r = p5.Vector.dist(p2, p1);\n" +
+                "\n" +
+                "                    var F = p5.Vector.mult(u, G * (m1*m2) / (r*r));\n" +
+                "                    b.addForce(F);\n" +
+                "                }\n" +
+                "            }\n" +
+                "\n" +
+                "            nom.add(p5.Vector.mult(a.pos, a.mass));\n" +
+                "            denom += a.mass;\n" +
+                "        }\n" +
+                "\n" +
+                "        p.directionalLight(255, 255, 255, 0, 0, -1);\n" +
+                "        //p.texture(p.debugTex);\n" +
+                "\n" +
+                "        for(var i = 0; i < N; i++) {\n" +
+                "            var a = p.particles[i];\n" +
+                "            for(var j = 0; j < N; j++) {\n" +
+                "                var b = p.particles[j];\n" +
+                "                if(i != j && a.collided(b)) {\n" +
+                "                    var p1 = a.pos.copy();\n" +
+                "                    var p2 = b.pos.copy();\n" +
+                "\n" +
+                "                    var n = p5.Vector.sub(p1, p2).normalize();\n" +
+                "\n" +
+                "                    var m1 = a.mass;\n" +
+                "                    var m2 = b.mass;\n" +
+                "\n" +
+                "                    var v1 = a.vel;\n" +
+                "                    var v2 = b.vel;\n" +
+                "\n" +
+                "                    var r1 = p5.Vector.mult(n, a.radius);\n" +
+                "                    var r2 = p5.Vector.mult(n, -b.radius);\n" +
+                "\n" +
+                "                    var vr = p5.Vector.sub(v1, v2);\n" +
+                "\n" +
+                "                    var e = 0.0;\n" +
+                "\n" +
+                "                    var jr_nom = (1-e)*p5.Vector.dot(vr,n);\n" +
+                "                    var jr_denom = Math.pow(m1,-1) + Math.pow(m2,-1)\n" +
+                "                        //+ p5.Vector.dot(p5.Vector.add(p5.Vector.cross(p5.Vector.cross(r1,n),r1),\n" +
+                "                        //                              p5.Vector.cross(p5.Vector.cross(r2,n),r2)),n)\n" +
+                "\n" +
+                "                    ;\n" +
+                "\n" +
+                "                    var jr = jr_nom/jr_denom;\n" +
+                "\n" +
+                "                    a.vel = p5.Vector.sub(v1, p5.Vector.mult(n,jr/m1));\n" +
+                "                    b.vel = p5.Vector.add(v2, p5.Vector.mult(n,jr/m2));\n" +
+                "                    a.acc.mult(0);\n" +
+                "                    b.acc.mult(0);\n" +
+                "                }\n" +
+                "            }\n" +
+                "            a.update(deltaTime);\n" +
+                "            a.draw();\n" +
+                "        }\n" +
+                "\n" +
+                "        p.fill(255);\n" +
+                "        p.strokeWeight(1.25);\n" +
+                "        p.stroke(128);\n" +
+                "\n" +
+                "        // front\n" +
+                "        p.line(-boxSize.x, -boxSize.y, boxSize.z, boxSize.x, -boxSize.y, boxSize.z);\n" +
+                "        p.line(-boxSize.x, boxSize.y, boxSize.z, boxSize.x, boxSize.y, boxSize.z);\n" +
+                "        p.line(-boxSize.x, -boxSize.y, boxSize.z, -boxSize.x, boxSize.y, boxSize.z);\n" +
+                "        p.line(boxSize.x, -boxSize.y, boxSize.z, boxSize.x, boxSize.y, boxSize.z);\n" +
+                "\n" +
+                "        // back\n" +
+                "        p.line(-boxSize.x, -boxSize.y, -boxSize.z, boxSize.x, -boxSize.y, -boxSize.z);\n" +
+                "        p.line(-boxSize.x, boxSize.y, -boxSize.z, boxSize.x, boxSize.y, -boxSize.z);\n" +
+                "        p.line(-boxSize.x, -boxSize.y, -boxSize.z, -boxSize.x, boxSize.y, -boxSize.z);\n" +
+                "        p.line(boxSize.x, -boxSize.y, -boxSize.z, boxSize.x, boxSize.y, -boxSize.z);\n" +
+                "\n" +
+                "        // left top\n" +
+                "        p.line(-boxSize.x, -boxSize.y, boxSize.z, -boxSize.x, -boxSize.y, -boxSize.z);\n" +
+                "        // left bottom\n" +
+                "        p.line(-boxSize.x, boxSize.y, -boxSize.z, -boxSize.x, boxSize.y, boxSize.z);\n" +
+                "        // right top\n" +
+                "        p.line(boxSize.x, -boxSize.y, boxSize.z, boxSize.x, -boxSize.y, -boxSize.z);\n" +
+                "        // right bottom\n" +
+                "        p.line(boxSize.x, boxSize.y, -boxSize.z, boxSize.x, boxSize.y, boxSize.z);\n" +
+                "\n" +
+                "        p.strokeWeight(2);\n" +
+                "\n" +
+                "        // Draw center of mass\n" +
+                "        p.stroke(255, 128, 255);\n" +
+                "\n" +
+                "        nom.div(denom);\n" +
+                "        p.point(nom.x, nom.y, nom.z);\n" +
+                "    };\n" +
+                "};",//httpGet('./demo2.js'),
+            mode:  "javascript",
+            lineNumbers: true
+        });
+
+        var myp5_1, myp5_2;
+
+        startDemo1();
+        startDemo2();
+
+        function startDemo1() {
+            eval(codeMirror1.getValue());
+
+            if(myp5_1) {
+                myp5_1.remove();
+            }
+
+            var myNode = document.getElementById("p5sketch1");
+            myNode.innerHTML = '';
+
+            myp5_1 = new p5(sketch, document.getElementById('p5sketch1'));
+        }
+
+        function startDemo2() {
+            eval(codeMirror2.getValue());
+
+            if(myp5_2) {
+                myp5_2.remove();
+            }
+
+            var myNode = document.getElementById("p5sketch2");
+            myNode.innerHTML = '';
+
+            myp5_2 = new p5(sketch, document.getElementById('p5sketch2'));
+        }
+
+
+    </script>
+</body>
+</html>
